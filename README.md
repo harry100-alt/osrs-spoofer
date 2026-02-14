@@ -2,7 +2,13 @@
 
 Makes BlueStacks 5.x completely undetectable for Old School RuneScape, with unique device fingerprints per instance.
 
-## Quick Start (GUI)
+## Download
+
+Download **`osrs_spoof.py`** — that's the only file you need. Everything is bundled inside it.
+
+## Usage
+
+Double-click or run:
 
 ```bash
 python osrs_spoof.py
@@ -10,7 +16,7 @@ python osrs_spoof.py
 
 A GUI opens with device selection, one-click Spoof/Test/Register buttons, and live output.
 
-## Quick Start (CLI)
+### CLI
 
 ```bash
 python osrs_spoof.py --instance 0                # Spoof instance 0 (default)
@@ -30,46 +36,16 @@ python osrs_spoof.py --cleanup --instance 0       # Post-registration cleanup
 
 The spoofer applies 12 layers of anti-detection to make BlueStacks indistinguishable from a real Samsung Galaxy phone. Run it after every reboot.
 
-### Layer 1: File System (bind mounts)
-- Removes `/dev/vboxguest`, `/dev/vboxuser`
-- Hides `/sys/module/vboxguest`, `/sys/module/vboxsf`
-- Hides PCI bus artifacts and BlueStacks drivers
-- Removes `/data/.bluestacks.prop`, hides `/boot/bstsetup.env`
-- Unmounts and hides `/mnt/windows`
-- Hides BlueStacks system apps
-
-### Layer 2: /proc Spoofing
-- `/proc/bus/input/devices` — Samsung Galaxy touchscreen + fingerprint
-- `/proc/net/dev` — wlan0 + rmnet_data0 (no eth0)
-- `/proc/modules` — wlan + sec_nfc only
-- `/proc/cpuinfo` — ARM64 Exynos 2200 (8-core)
-- `/proc/version` — Android 14 kernel
-- `/proc/mounts` — vboxsf entries filtered
-
-### Layer 3: Library Patching
-- `libandroid_runtime.so` — "bluestacks" strings replaced
-- `libhoudini.so` / `libndk_translation.so` — hidden via bind mounts
-
-### Layer 4: Property Spoofing (resetprop)
-- 90+ properties across all Android namespaces
-- Samsung Galaxy S22/S23/S21 device profiles (8 variants)
-- CTS/Play Protect properties (debuggable=0, secure=1, etc.)
-- Verified boot state, encryption status, SELinux
-
-### Layer 5: GL String Spoofing (LD_PRELOAD)
-- Native `glGetString()` / `glGetStringi()` / `eglQueryString()` hooks
-- Replaces GL_VENDOR, GL_RENDERER, GL_VERSION at the C library level
-- Hides host GPU (NVIDIA/Intel) behind Qualcomm Adreno identity
-- Configurable via `gl_spoof.conf`
-
-### Layer 6: Instance Identity
-- Unique Android ID per instance (deterministic from instance number)
-- Unique serial number per instance
-- Unique operator identity per instance
+1. **File System** — removes VirtualBox devices, hides BlueStacks files and apps via bind mounts
+2. **/proc Spoofing** — fakes input devices, network interfaces, CPU info, kernel version, loaded modules
+3. **Library Patching** — replaces "bluestacks" strings in runtime libraries, hides ARM translation layers
+4. **Property Spoofing** — 90+ Android properties set via resetprop (build fingerprint, model, CTS flags)
+5. **GL String Spoofing** — native LD_PRELOAD hook replaces GPU vendor/renderer/version strings
+6. **Instance Identity** — unique Android ID, serial number, and operator per instance
 
 ## Multi-Instance Support
 
-Each BlueStacks instance gets a unique device identity based on its instance number. Clone instances are fully supported — the spoofer auto-detects available instances and handles root access on clones via an init service.
+Each BlueStacks instance gets a unique device identity based on its instance number. Clone instances are fully supported.
 
 ## Device Profiles
 
@@ -89,7 +65,7 @@ Each BlueStacks instance gets a unique device identity based on its instance num
 ## Play Protect Certification
 
 1. Click **Spoof** (or run `--instance N`)
-2. Click **Register** (or run `--register`) — copies GSF ID to clipboard
+2. Click **Register** — copies GSF ID to clipboard
 3. Paste on the page that opens and submit
 4. Reboot BlueStacks and check Play Store settings
 
@@ -100,13 +76,10 @@ PASS: 25 | FAIL: 0 | CRIT: 0
 >>> ALL CLEAR <<<
 ```
 
-## Building GL Hook (from source)
+## Development
 
-Requires Android NDK r27c+:
+The other files in this repo are source code used to build `osrs_spoof.py`:
 
 ```bash
-cd gl-hook
-./build.sh /path/to/android-ndk-r27c
+python _build_single.py    # Rebuilds osrs_spoof.py from _tail.py + assets
 ```
-
-Pre-compiled binaries for x86_64 and x86 are included.
