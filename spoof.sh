@@ -454,6 +454,7 @@ patch_library() {
         LIB_PATCH_OK=0
         return 1
     fi
+    /system/bin/chmod 755 "$dst" 2>/dev/null
     for pat in bluestacks BlueStacks Bluestacks BLUESTACKS; do
         offsets=$("$SYSGREP" -boa "$pat" "$dst" 2>/dev/null | cut -d: -f1)
         for offset in $offsets; do

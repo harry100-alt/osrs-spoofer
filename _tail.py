@@ -51,6 +51,9 @@ def extract_assets():
 def find_adb():
     """Find HD-Adb.exe or adb.exe on this machine."""
     candidates = [
+        # Prefer OSMB's ADB first — avoids version conflicts when OSMB is running
+        os.path.join(os.environ.get("USERPROFILE", ""),
+                     ".osmb", "platform-tools", "adb.exe"),
         os.path.join(os.environ.get("ProgramFiles", r"C:\Program Files"),
                      "BlueStacks_nxt", "HD-Adb.exe"),
         os.path.join(os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)"),
